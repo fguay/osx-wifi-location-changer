@@ -9,7 +9,7 @@
 # version: 0.4
 
 # redirect all IO to a logfile
-exec &>/usr/local/var/log/locationchanger.log
+#exec &>/usr/local/var/log/locationchanger.log
 # redirect all IO to /dev/null (comment this in if you don#t want to write to logfile)
 #exec 1>/dev/null 2>/dev/null
 
@@ -27,20 +27,16 @@ LOCATION=
 # (use to be used Location name here)
 # =============================================
 Location_Automatic="Automatic"
-Location_CompanyIntra="Company Intranet"
+Location_Canal="Canal+ Network"
 
 # SSIDS
 # =====
-SSID_TelekomPublic=Telekom
-SSID_Home=HomeSSID
-SSID_CompanyIntra=CompanyIntraSSID
-
+SSID_Canal=NETGEAR15-5G
+# ... add more there
 
 # SSID -> LOCATION mapping
 case $SSID in
-	$SSID_TelekomPublic ) LOCATION="$Location_Automatic";;
-	$SSID_Home          ) LOCATION="$Location_Automatic";;
-	$SSID_CompanyIntra  ) LOCATION="$Location_CompanyIntra";;
+	$SSID_Canal  ) LOCATION="$Location_Canal";;
 	# ... add more here
 esac
 	REASON="SSID changed to $SSID"
@@ -57,14 +53,32 @@ scselect "$LOCATION"
 
 case $LOCATION in
 	$Location_Automatic )
-		# do stuff here you would do in Location_Automatic
+		launchctl setenv 
+		launchctl unsetenv proxy_host
+		launchctl unsetenv proxy_port
+		launchctl unsetenv http_proxy 
+		launchctl unsetenv https_proxy
+		launchctl unsetenv HTTP_PROXY
+		launchctl unsetenv HTTPS_PROXY
+		launchctl unsetenv no_proxy
+		launchctl unsetenv NO_PROXY
+		launchctl setenv SBT_OPTS "-Dfile.encoding=UTF8 -Dsbt.override.build.repos=true"
 	;;
 	
-	$Location_CompanyIntra )
-		# nothing special here
+	$Location_Canal )
+		 launchctl setenv proxy_host "bluecoatproxy.cpgrp.root.local"
+		 launchctl setenv proxy_port "8080"
+		 launchctl setenv http_proxy "http://bluecoatproxy.cpgrp.root.local:8080/"
+		 launchctl setenv https_proxy "http://bluecoatproxy.cpgrp.root.local:8080/"
+		 launchctl setenv HTTP_PROXY "$http_proxy"
+		 launchctl setenv HTTPS_PROXY "$http_proxy"
+		 launchctl setenv no_proxy "localhost,127.0.0.0/8,172.30.0.0/24,194.4.237.58,frcp03vin0013.cpdev.local,frcp03vdv0073.cpdev.local,fo1-pp.app.vod.cdn,fo2-pp.app.vod.cdn,fo3-pp.app.vod.cdn,db-pp.app.vod.cdn,db1-pp.app.vod.cdn,db2-pp.app.vod.cdn,db3-pp.app.vod.cdn,db-rec-1.app.vod.cdn,cvs1.app.vod.cdn,gesc0spacewlk01.msdb.coprod.cdn,gesc0report01.msdb.coprod.cdn,192.168.236.199,192.168.236.19,192.168.136.68,lb-crapaud-vabf.test.cdn,172.30.70.10,ldap.canal-bis.com:636,quova-pp.app.vod.cdn,cas01.app-g3.vod.cdn,dvssoft.app-g3.vod.cdn,lb-prdrm-vabf.backservices.coprod.cdn,lb-mdrm-vabf.backservices.coprod.cdn,10.251.84.11,192.168.139.1,10.100.0.0/8,10.200.0.0/8,10.210.0.0/8,10.220.0.0/8,10.230.0.0/8,10.240.0.0/8,10.250.0.0/8,172.19.0.0/8,172.23.32.0/20,172.23.103.192/26,172.23.38.161,172.23.38.192,c-infra-ns03.mg.vabf.coprod.eu-west-1.aws,172.30.5.17,172.30.5.16,/var/run/docker.sock,mg.int.coprod.eu-west-1.aws"
+		 launchctl setenv NO_PROXY "$no_proxy"
+		 launchctl setenv SBT_OPTS "-Dfile.encoding=UTF8 -Dsbt.override.build.repos=true  -Dhttp.proxyHost=bluecoatproxy.cpgrp.root.local -Dhttp.proxyPort=8080 -Dhttp.nonProxyHosts=localhost|*.mg.int.coprod.eu-west-1.aws|127.*|[::1]|172.30.95.*|172.23.*|atgbo-n7|172.17.*|172.30.5.16|172.30.5.17|lb-prdrm-vabf.backservices.coprod.cdn|lb-mdrm-vabf.backservices.coprod.cdn"
 	;;
 esac
 
 echo "--> Location Changer: $LOCATION - $REASON"
+osascript -e "display notification \"$LOCATION - $REASON\" with title \"Network Change\""
 
 exit 0
