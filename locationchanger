@@ -32,11 +32,13 @@ Location_Canal="Canal+ Network"
 # SSIDS
 # =====
 SSID_Canal=NETGEAR15-5G
+SSID_Air_Port=myAirPort
 # ... add more there
 
 # SSID -> LOCATION mapping
 case $SSID in
 	$SSID_Canal  ) LOCATION="$Location_Canal";;
+	$SSID_Air_Port  ) LOCATION="$Location_Canal";;
 	# ... add more here
 esac
 	REASON="SSID changed to $SSID"
