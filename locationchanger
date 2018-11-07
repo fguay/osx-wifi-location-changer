@@ -46,8 +46,14 @@ esac
 
 # still didn't get a location -> use Location_Automatic
 if [ -z "$LOCATION" ]; then
-	LOCATION="$Location_Automatic"
-	REASON="Automatic Fallback"
+  if scutil --proxy | grep -q 'ProxyAutoConfigEnable : 1'
+  then
+        LOCATION="$Location_Canal"
+        REASON="Automatic Fallback but enabled proxy config"
+  else
+        LOCATION="$Location_Automatic"
+        REASON="Automatic Fallback"
+  fi
 fi
 
 # change network location
