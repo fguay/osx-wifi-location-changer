@@ -48,7 +48,7 @@ esac
 
 # still didn't get a location -> use Location_Automatic
 if [ -z "$LOCATION" ]; then
-  if scutil --proxy | grep -q 'ProxyAutoConfigEnable : 1'
+  if scutil --proxy | grep -q 'cpgrp.root.local'
   then
         LOCATION="$Location_Canal"
         REASON="Automatic Fallback but enabled proxy config"
