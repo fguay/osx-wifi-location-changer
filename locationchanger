@@ -40,12 +40,13 @@ PARAM_Canal=canal
 PARAM_Voddev=voddev
 
 # ... add more there
+# check parameter instead of detection if not defined use wifi ssid mapping
 if [ -z "$1" ]
 then 
   # SSID -> LOCATION mapping
   case $SSID in
 	$SSID_Voddev  ) LOCATION="$Location_Voddev";;
-	$SSID_Air_Port  ) LOCATION="$Location_Canal";;
+	$SSID_Air_Port  ) LOCATION="$Location_Voddev";;
     $SSID_MyWifi    ) LOCATION="$Location_Canal";;
 	# ... add more here
   esac
@@ -60,12 +61,12 @@ fi
 
 # still didn't get a location -> use Location_Automatic
 if [ -z "$LOCATION" ]; then
-  if [scutil --proxy | grep -q 'cpgrp.root.local' ]
+  if scutil --proxy | grep -q 'cpgrp.root.local' 
   then
         LOCATION="$Location_Canal"
         REASON="Automatic Fallback but enabled proxy config"
-  elif [scutil --proxy | grep -q 'ProxyAutoConfigEnable : 1' ]
-  then 
+  elif  scutil --proxy | grep -q 'ProxyAutoConfigEnable : 1' 
+  then
 		LOCATION="$Location_Voddev"
         REASON="Automatic Fallback but enabled voddev proxy config"
   else
