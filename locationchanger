@@ -90,6 +90,7 @@ case $LOCATION in
 		launchctl unsetenv no_proxy
 		launchctl unsetenv NO_PROXY
 		launchctl setenv SBT_OPTS "-Dfile.encoding=UTF8 -Dsbt.override.build.repos=true"
+		launchctl setenv CODE_REPO_HOST "voddev.canal-plus.io:8081"
 	;;
 	$Location_Voddev ) 
          PROXY_HOSTNAME="bluecoatproxy.cpgrp.root.local"
