@@ -38,6 +38,8 @@ SSID_Air_Port=myAirPort
 SSID_MyWifi=myWIFI
 PARAM_Canal=canal
 PARAM_Voddev=voddev
+PARAM_Auto=auto
+
 
 # ... add more there
 # check parameter instead of detection if not defined use wifi ssid mapping
@@ -47,31 +49,28 @@ then
   case $SSID in
 	$SSID_Voddev  ) LOCATION="$Location_Voddev";;
 	$SSID_Air_Port  ) LOCATION="$Location_Voddev";;
-    $SSID_MyWifi    ) LOCATION="$Location_Canal";;
+  $SSID_MyWifi    ) LOCATION="$Location_Canal";;
 	# ... add more here
   esac
 	REASON="SSID changed to $SSID"
 else 
   case $1 in
        $PARAM_Voddev ) LOCATION="$Location_Voddev";;
-	   $PARAM_Canal ) LOCATION="$Location_Canal";;
+	   	 $PARAM_Canal ) LOCATION="$Location_Canal";;
+			 $PARAM_Auto ) LOCATION="$Location_Automatic";;	
   esac
     REASON="Force config param : $1 "
 fi
 
 # still didn't get a location -> use Location_Automatic
 if [ -z "$LOCATION" ]; then
-  if scutil --proxy | grep -q 'cpgrp.root.local' 
-  then
-        LOCATION="$Location_Canal"
+  
+	if nc -z bluecoatproxy.cpgrp.root.local 8080; then 
+        LOCATION="$Location_Voddev"
         REASON="Automatic Fallback but enabled proxy config"
-  elif  scutil --proxy | grep -q 'ProxyAutoConfigEnable : 1' 
-  then
-		LOCATION="$Location_Voddev"
-        REASON="Automatic Fallback but enabled voddev proxy config"
   else
-        LOCATION="$Location_Automatic"
-        REASON="Automatic Fallback"
+		LOCATION="$Location_Automatic"
+		REASON="Automatic Fallback"
   fi
 fi
 
@@ -93,12 +92,12 @@ case $LOCATION in
 		launchctl setenv CODE_REPO_HOST "voddev.canal-plus.io:8081"
 	;;
 	$Location_Voddev ) 
-         PROXY_HOSTNAME="bluecoatproxy.cpgrp.root.local"
+     PROXY_HOSTNAME="bluecoatproxy.cpgrp.root.local"
 		 PROXY_PORT="8080"
 	
 		 launchctl setenv proxy_host "$PROXY_HOSTNAME"
 		 launchctl setenv proxy_port "$PROXY_PORT"
-	     launchctl setenv http_proxy "http://$PROXY_HOSTNAME:$PROXY_PORT/"
+	   launchctl setenv http_proxy "http://$PROXY_HOSTNAME:$PROXY_PORT/"
 		 launchctl setenv https_proxy "http://$PROXY_HOSTNAME:$PROXY_PORT/"
 		 launchctl setenv HTTP_PROXY "$http_proxy"
 		 launchctl setenv HTTPS_PROXY "$http_proxy"
@@ -108,8 +107,8 @@ case $LOCATION in
 	;;
 	$Location_Canal )
 		 SERVICE_GUID=`printf "open\nget State:/Network/Global/IPv4\nd.show" | scutil | grep "PrimaryService" | awk '{print $3}'`
-         SERVICE_NAME=`printf "open\nget Setup:/Network/Service/$SERVICE_GUID\nd.show" | scutil | grep "UserDefinedName" | awk -F': ' '{print $2}'`
-         PROXY_HOSTNAME=`networksetup -getwebproxy "$SERVICE_NAME" | awk {'print $2'} | awk 'FNR == 2 {print}' | cut -d' ' -f2`
+     SERVICE_NAME=`printf "open\nget Setup:/Network/Service/$SERVICE_GUID\nd.show" | scutil | grep "UserDefinedName" | awk -F': ' '{print $2}'`
+     PROXY_HOSTNAME=`networksetup -getwebproxy "$SERVICE_NAME" | awk {'print $2'} | awk 'FNR == 2 {print}' | cut -d' ' -f2`
 		 PROXY_PORT=`networksetup -getwebproxy "$SERVICE_NAME" | awk {'print $2'} | awk 'FNR == 3 {print}' | cut -d' ' -f2`
 		 PROXY_USER=`security find-internet-password -s "$PROXY_HOSTNAME" | grep "acct" | cut -d '"' -f 4`
 		 PROXY_PASS=`security 2>&1 >/dev/null find-internet-password -gs "$PROXY_HOSTNAME" | cut -d '"' -f 2`
